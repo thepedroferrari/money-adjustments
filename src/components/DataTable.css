@@ -1,0 +1,63 @@
+/* DataTable.css */
+.table-container {
+    margin: 20px;
+    overflow-x: auto;
+    background-color: #2b2b2b;
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+    padding-bottom: 60px; /* Ensure space for footer */
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #ffffff;
+  }
+  
+  th, td {
+    border: 1px solid #444444;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #3c3c3c;
+  }
+  
+  td {
+    text-align: left;
+    background-color: #2e2e2e;
+  }
+  
+  td.number {
+    text-align: right;
+  }
+  
+  tr:nth-child(even) {
+    background-color: #333333;
+  }
+  
+  tr:hover {
+    background-color: #555555;
+  }
+  
+  select {
+    padding: 5px 10px;
+    border-radius: 20px;
+    background-color: #3c3c3c;
+    color: #ffffff;
+    border: 1px solid #444444;
+    cursor: pointer;
+  }
+  
+  select:hover {
+    background-color: #555555;
+  }
+  
+  input[type="checkbox"] {
+    transform: scale(1.5);
+    margin: 0;
+    cursor: pointer;
+  }
+  
