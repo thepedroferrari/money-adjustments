@@ -1,9 +1,19 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
-import { calculatePedroKarolin, shouldDisableRow } from '../utils/businessLogic';
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  ReactNode,
+} from "react";
+import {
+  calculatePedroKarolin,
+  shouldDisableRow,
+} from "../utils/businessLogic";
 
 export interface DataRow {
   date: string;
   where: string;
+  owner: string;
   price: number;
 }
 
@@ -14,22 +24,32 @@ export interface DataContextType {
   setData: (data: DataRow[]) => void;
   handlePillChange: (index: number, value: string) => void;
   handleAccrueChange: (index: number, checked: boolean) => void;
-  calculateTotals: () => { total: number; partialPedro: number; partialKarolin: number };
+  calculateTotals: () => {
+    total: number;
+    partialPedro: number;
+    partialKarolin: number;
+  };
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const DataProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [data, setData] = useState<DataRow[]>([]);
-  const [pillSelections, setPillSelections] = useState<{ [key: number]: string }>({});
-  const [accrueSelections, setAccrueSelections] = useState<{ [key: number]: boolean }>({});
+  const [pillSelections, setPillSelections] = useState<{
+    [key: number]: string;
+  }>({});
+  const [accrueSelections, setAccrueSelections] = useState<{
+    [key: number]: boolean;
+  }>({});
 
   useEffect(() => {
     const initialPillSelections: { [key: number]: string } = {};
     const initialAccrueSelections: { [key: number]: boolean } = {};
 
     data.forEach((item, index) => {
-      initialPillSelections[index] = '66%';
+      initialPillSelections[index] = "66%";
       initialAccrueSelections[index] = item.price <= 0;
       if (shouldDisableRow(item)) {
         initialAccrueSelections[index] = false;
@@ -61,7 +81,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     data.forEach((item, index) => {
       if (accrueSelections[index] !== false) {
-        const { pedro, karolin } = calculatePedroKarolin(item.price, pillSelections[index] || '66%');
+        const { pedro, karolin } = calculatePedroKarolin(
+          item.price,
+          pillSelections[index] || "66%",
+        );
         total += item.price;
         partialPedro += pedro;
         partialKarolin += karolin;
@@ -73,7 +96,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   return (
     <DataContext.Provider
-      value={{ data, pillSelections, accrueSelections, setData, handlePillChange, handleAccrueChange, calculateTotals }}
+      value={{
+        data,
+        pillSelections,
+        accrueSelections,
+        setData,
+        handlePillChange,
+        handleAccrueChange,
+        calculateTotals,
+      }}
     >
       {children}
     </DataContext.Provider>
@@ -83,7 +114,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 export const useDataContext = (): DataContextType => {
   const context = useContext(DataContext);
   if (context === undefined) {
-    throw new Error('useDataContext must be used within a DataProvider');
+    throw new Error("useDataContext must be used within a DataProvider");
   }
   return context;
 };
