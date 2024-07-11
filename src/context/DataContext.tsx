@@ -3,6 +3,7 @@ import React, {
   useState,
   useEffect,
   useContext,
+  useRef,
   ReactNode,
 } from "react";
 import {
@@ -24,11 +25,16 @@ export interface DataContextType {
   setData: (data: DataRow[]) => void;
   handlePillChange: (index: number, value: string) => void;
   handleAccrueChange: (index: number, checked: boolean) => void;
+  deleteTransaction: (index: number) => void;
   calculateTotals: () => {
     total: number;
     partialPedro: number;
     partialKarolin: number;
   };
+  sortData: (column: keyof DataRow) => void;
+  resetData: () => void;
+  sortOrder: "asc" | "desc" | "original";
+  sortColumn: keyof DataRow;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -37,12 +43,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [data, setData] = useState<DataRow[]>([]);
+  const originalDataRef = useRef<DataRow[]>([]);
   const [pillSelections, setPillSelections] = useState<{
     [key: number]: string;
   }>({});
   const [accrueSelections, setAccrueSelections] = useState<{
     [key: number]: boolean;
   }>({});
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "original">(
+    "original",
+  );
+  const [sortColumn, setSortColumn] = useState<keyof DataRow>("date");
 
   useEffect(() => {
     const initialPillSelections: { [key: number]: string } = {};
@@ -58,6 +69,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
 
     setPillSelections(initialPillSelections);
     setAccrueSelections(initialAccrueSelections);
+
+    // Initialize original data ref
+    if (originalDataRef.current.length === 0) {
+      originalDataRef.current = data;
+    }
   }, [data]);
 
   const handlePillChange = (index: number, value: string) => {
@@ -72,6 +88,10 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
       ...prev,
       [index]: checked,
     }));
+  };
+
+  const deleteTransaction = (index: number) => {
+    setData((prevData) => prevData.filter((_, i) => i !== index));
   };
 
   const calculateTotals = () => {
@@ -94,6 +114,30 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
     return { total, partialPedro, partialKarolin };
   };
 
+  const sortData = (column: keyof DataRow) => {
+    if (sortOrder === "original" || sortColumn !== column) {
+      setSortOrder("asc");
+      setSortColumn(column);
+      const sortedData = [...data].sort((a, b) =>
+        a[column] > b[column] ? 1 : -1,
+      );
+      setData(sortedData);
+    } else if (sortOrder === "asc") {
+      setSortOrder("desc");
+      const sortedData = [...data].sort((a, b) =>
+        a[column] < b[column] ? 1 : -1,
+      );
+      setData(sortedData);
+    } else if (sortOrder === "desc") {
+      setSortOrder("original");
+      setData(originalDataRef.current);
+    }
+  };
+
+  const resetData = () => {
+    setData(originalDataRef.current);
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -103,7 +147,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({
         setData,
         handlePillChange,
         handleAccrueChange,
+        deleteTransaction,
         calculateTotals,
+        sortData,
+        resetData,
+        sortOrder,
+        sortColumn,
       }}
     >
       {children}

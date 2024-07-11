@@ -1,14 +1,11 @@
-import React from 'react';
-import { useDataContext } from '../context/DataContext';
-import './Footer.css';
+import React from "react";
+import { useDataContext } from "../context/DataContext";
+import "./Footer.css";
+import { formatCurrency } from "../utils/formatCurrency";
 
 const Footer: React.FC = () => {
   const { calculateTotals } = useDataContext();
   const { total, partialPedro, partialKarolin } = calculateTotals();
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' }).format(Math.abs(value));
-  };
 
   return (
     <div className="floating-footer">

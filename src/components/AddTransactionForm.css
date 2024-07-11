@@ -1,0 +1,101 @@
+/* AddTransactionForm.css */
+.add-transaction-form {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #2b2b2b;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.add-transaction-form h3 {
+  grid-column: 1 / -1;
+  color: #00ffff;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+  text-align: center;
+  font-size: 2em;
+  margin: 0 0 10px 0;
+}
+
+.add-transaction-form input,
+.add-transaction-form select,
+.add-transaction-form button {
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #444444;
+  background-color: #3c3c3c;
+  color: #ffffff;
+  transition:
+    box-shadow 0.5s ease-in-out,
+    border-color 0.5s ease-in-out;
+  position: relative;
+  z-index: 1;
+}
+
+.add-transaction-form input:focus,
+.add-transaction-form select:focus,
+.add-transaction-form button:focus {
+  outline: none;
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+}
+
+.add-transaction-form input::placeholder {
+  color: #aaaaaa;
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+}
+
+.add-transaction-form button {
+  cursor: pointer;
+  background-color: #444444;
+  border: none;
+  font-weight: bold;
+  font-size: 1em;
+  transition: all 1s;
+}
+
+.add-transaction-form button:hover:not(:disabled) {
+  background-color: #555555;
+  transition: all 1s;
+  border-color: #00ffff;
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+}
+
+.add-transaction-form button:disabled {
+  cursor: not-allowed;
+  background-color: #333333;
+  color: #777777;
+  border: 1px solid #555555;
+  box-shadow: none;
+}
+
+.add-transaction-form input:focus::before,
+.add-transaction-form select:focus::before,
+.add-transaction-form button:hover:not(:disabled)::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(5px);
+  background: rgba(0, 255, 255, 0.6);
+}
+
+.add-transaction-form input:focus::after,
+.add-transaction-form select:focus::after,
+.add-transaction-form button:hover:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  border-radius: inherit;
+  z-index: -2;
+  filter: blur(15px);
+  background: rgba(0, 255, 255, 0.3);
+}
