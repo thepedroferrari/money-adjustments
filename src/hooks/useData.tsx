@@ -5,7 +5,7 @@ import { DataRow } from "../context/DataContext";
 type ValidCards = HandelsbankenCard[] | AmexPlatinumCard[];
 
 export const useData = () => {
-  const { setData } = useDataContext();
+  const { data: ctxData, setData } = useDataContext();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -21,21 +21,19 @@ export const useData = () => {
         const workbook = XLSX.read(binaryStr, { type: "binary" });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
         const jsonData = XLSX.utils.sheet_to_json(worksheet) as ValidCards;
-
         console.log(jsonData);
 
         if (jsonData.length === 0) {
-          // No data in the file
           return;
         }
 
         if (isHandelsbankenCard(jsonData)) {
-          return setData(handleHandelsbankenCard(jsonData));
+          return setData([...ctxData, ...handleHandelsbankenCard(jsonData)]);
         }
-        // // Remove all items before the first valid index
-        // const validData: DataRow[] =
 
-        // setData(validData);
+        if (isAmexPlatinumCard(jsonData)) {
+          return setData([...ctxData, ...handleAmexPlatinumCard(jsonData)]);
+        }
       };
       reader.readAsArrayBuffer(file);
     }
@@ -87,7 +85,7 @@ interface AmexPlatinumCard {
   Transaktionsspecifikationer: string; // date
   __EMPTY: string; // name
   __EMPTY_1: string;
-  __EMPTY_2: number; // price
+  __EMPTY_2: number | string | undefined; // price
   __EMPTY_3: string;
   __EMPTY_4: string; // where
   __EMPTY_5: string;
@@ -106,16 +104,20 @@ function isAmexPlatinumCard(
 }
 
 const handleAmexPlatinumCard = (jsonData: AmexPlatinumCard[]): DataRow[] => {
-  // Find the first index where price is a valid number
-  const firstValidIndex = jsonData.findIndex((row) => {
-    const price = row["__EMPTY_2"];
-    return typeof price === "number" && !isNaN(price);
-  });
+  // Remove row containing previous card payment
+  const filteredData = jsonData.filter((rows) => {
+    return (
+      // we need to filter out rows containing the string "BETALNING MOTTAGEN, TACK"
+      !Object.values(rows).find((val) => val === "BETALNING MOTTAGEN, TACK") &&
+      // we need to filter out undefined / string values in price
+      typeof rows["__EMPTY_2"] === "number"
+    );
+  }) as (AmexPlatinumCard & { __EMPTY_2: number })[];
 
-  return jsonData.slice(firstValidIndex).map((row) => ({
+  return filteredData.map((row) => ({
     date: row["Transaktionsspecifikationer"],
     owner: getOwnerName(row["__EMPTY"]),
     where: row["__EMPTY_4"],
-    price: row["__EMPTY_2"],
+    price: row["__EMPTY_2"] * -1,
   }));
 };

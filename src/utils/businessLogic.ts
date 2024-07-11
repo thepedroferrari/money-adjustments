@@ -16,13 +16,15 @@ export const shouldDisableRow = (item: { where: string; price: number }) => {
   ];
 
   // Check for the presence of "Swedbank Pay" with -400 value (Haircut)
-  const isSwedbankPayWith400 = item.where === "Swedbank Pay" && item.price === -400;
-  
+  const isSwedbankPayWith400 =
+    item.where === "Swedbank Pay" && item.price === -400;
+
   // Exclude entries that loosely contain the word "saving"
   const containsSaving = /saving/i.test(item.where);
 
-  return disableList.includes(item.where) || isSwedbankPayWith400 || containsSaving;
+  return (
+    disableList.includes(item.where) || isSwedbankPayWith400 || containsSaving
+  );
 };
 
-
-export const pillOptions = ['0%', '33%', '66%', '100%'];
+export const pillOptions = ["0%", "25%", "33%", "50%", "66%", "75%", "100%"];
