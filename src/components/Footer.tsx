@@ -1,10 +1,10 @@
 import React from "react";
-import { useDataContext } from "../context/DataContext";
-import "./Footer.css";
+import { useStore } from "../hooks/useStore";
 import { formatCurrency } from "../utils/formatCurrency";
+import "./Footer.css";
 
 const Footer: React.FC = () => {
-  const { calculateTotals } = useDataContext();
+  const calculateTotals = useStore((state) => state.calculateTotals);
   const { total, partialPedro, partialKarolin } = calculateTotals();
 
   return (

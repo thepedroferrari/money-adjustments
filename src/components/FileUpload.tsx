@@ -1,9 +1,9 @@
 import React from 'react';
-import { useData } from '../hooks/useData';
 import './FileUpload.css';
+import { useStore } from '../hooks/useStore';
 
 const FileUpload: React.FC = () => {
-  const { handleFileUpload } = useData();
+  const handleFileUpload = useStore((state) => state.handleFileUpload);
 
   return (
     <div className="file-upload">

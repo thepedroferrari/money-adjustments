@@ -1,5 +1,5 @@
 import React from "react";
-import { DataRow, useDataContext } from "../context/DataContext";
+import { DataRow, useStore } from "../hooks/useStore";
 import { calculatePedroKarolin, pillOptions } from "../utils/businessLogic";
 import { formatCurrency } from "../utils/formatCurrency";
 import AddTransactionForm from "./AddTransactionForm";
@@ -8,18 +8,15 @@ import DeleteIcon from "./DeleteIcon";
 import { AscendingIcon, DescendingIcon, UnsortedIcon } from "./SortingIcons";
 
 const DataTable: React.FC = () => {
-  const {
-    data,
-    pillSelections,
-    accrueSelections,
-    handlePillChange,
-    handleAccrueChange,
-    deleteTransaction,
-    sortData,
-    resetData,
-    sortOrder,
-    sortColumn,
-  } = useDataContext();
+  const data = useStore((state) => state.data);
+  const handlePillChange = useStore((state) => state.handlePillChange);
+  const handleAccrueChange = useStore((state) => state.handleAccrueChange);
+  const deleteTransaction = useStore((state) => state.deleteTransaction);
+  const sortData = useStore((state) => state.sortData);
+  const sortOrder = useStore((state) => state.sortOrder);
+  const sortColumn = useStore((state) => state.sortColumn);
+  const pillSelections = useStore((state) => state.pillSelections);
+  const accrueSelections = useStore((state) => state.accrueSelections);
 
   const handleSort = (column: keyof DataRow) => {
     sortData(column);

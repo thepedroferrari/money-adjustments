@@ -1,60 +1,31 @@
-import React, { useState, useEffect } from "react";
-import { useDataContext } from "../context/DataContext";
+import React, { useCallback, useEffect, useState } from "react";
+import { useStore } from "../hooks/useStore";
 import { pillOptions } from "../utils/businessLogic";
 import "./AddTransactionForm.css";
 
+const initialTransaction = {
+  date: "",
+  owner: "",
+  where: "",
+  price: 0,
+  pillSelection: "66%",
+};
+
 const AddTransactionForm: React.FC = () => {
-  const { data, setData } = useDataContext();
+  const data = useStore((state) => state.data);
+  const setData = useStore((state) => state.setData);
 
-  const [newTransaction, setNewTransaction] = useState({
-    date: "",
-    owner: "",
-    where: "",
-    price: 0,
-    pillSelection: "66%",
-  });
+  const { formState, handleChange, resetForm, isFormValid } = useForm();
 
-  const [isFormValid, setIsFormValid] = useState(false);
-
-  useEffect(() => {
-    const { date, owner, where, price, pillSelection } = newTransaction;
-    if (date && owner && where && price > 0 && pillSelection) {
-      setIsFormValid(true);
-    } else {
-      setIsFormValid(false);
-    }
-  }, [newTransaction]);
-
-  const handleNewTransactionChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setNewTransaction({
-      ...newTransaction,
-      [name]: name === "price" ? parseFloat(value) : value,
-    });
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const newEntry = {
-      date: formData.get("date") as string,
-      owner: formData.get("owner") as string,
-      where: formData.get("where") as string,
-      price: parseFloat(formData.get("price") as string),
-      pillSelection: formData.get("pillSelection") as string,
-    };
-    const updatedData = [...data, newEntry];
-    setData(updatedData);
-    setNewTransaction({
-      date: "",
-      owner: "",
-      where: "",
-      price: 0,
-      pillSelection: "66%",
-    });
-  };
+  const handleSubmit = useCallback(
+    (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      const newEntry = { ...formState };
+      setData([...data, newEntry]);
+      resetForm();
+    },
+    [formState, data, setData, resetForm],
+  );
 
   return (
     <form className="add-transaction-form" onSubmit={handleSubmit}>
@@ -63,34 +34,34 @@ const AddTransactionForm: React.FC = () => {
         type="date"
         name="date"
         placeholder="Date"
-        value={newTransaction.date}
-        onChange={handleNewTransactionChange}
+        value={formState.date}
+        onChange={handleChange}
       />
       <input
         type="text"
         name="owner"
         placeholder="Owner"
-        value={newTransaction.owner}
-        onChange={handleNewTransactionChange}
+        value={formState.owner}
+        onChange={handleChange}
       />
       <input
         type="text"
         name="where"
         placeholder="Where"
-        value={newTransaction.where}
-        onChange={handleNewTransactionChange}
+        value={formState.where}
+        onChange={handleChange}
       />
       <input
         type="number"
         name="price"
         placeholder="Price"
-        value={newTransaction.price}
-        onChange={handleNewTransactionChange}
+        value={formState.price}
+        onChange={handleChange}
       />
       <select
         name="pillSelection"
-        value={newTransaction.pillSelection}
-        onChange={handleNewTransactionChange}
+        value={formState.pillSelection}
+        onChange={handleChange}
       >
         {pillOptions.map((option) => (
           <option key={option} value={option}>
@@ -103,6 +74,35 @@ const AddTransactionForm: React.FC = () => {
       </button>
     </form>
   );
+};
+
+const useForm = (
+  initialState: typeof initialTransaction = initialTransaction,
+) => {
+  const [formState, setFormState] = useState(initialState);
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    const { date, owner, where, price, pillSelection } = formState;
+    setIsFormValid(!!(date && owner && where && price > 0 && pillSelection));
+  }, [formState]);
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      const { name, value } = e.target;
+      setFormState((prevState) => ({
+        ...prevState,
+        [name]: name === "price" ? parseFloat(value) : value,
+      }));
+    },
+    [],
+  );
+
+  const resetForm = useCallback(() => {
+    setFormState(initialState);
+  }, [initialState]);
+
+  return { formState, handleChange, resetForm, isFormValid };
 };
 
 export default AddTransactionForm;
