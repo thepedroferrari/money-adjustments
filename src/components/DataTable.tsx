@@ -1,5 +1,5 @@
 import React from "react";
-import { DataRow, useStore } from "../hooks/useStore";
+import { Expense, useStore } from "../hooks/useStore";
 import { calculatePedroKarolin, pillOptions } from "../utils/businessLogic";
 import { formatCurrency } from "../utils/formatCurrency";
 import AddTransactionForm from "./AddTransactionForm";
@@ -18,7 +18,7 @@ const DataTable: React.FC = () => {
   const pillSelections = useStore((state) => state.pillSelections);
   const accrueSelections = useStore((state) => state.accrueSelections);
 
-  const handleSort = (column: keyof DataRow) => {
+  const handleSort = (column: keyof Expense) => {
     sortData(column);
   };
 

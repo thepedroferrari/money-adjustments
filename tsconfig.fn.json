@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "module": "ESNext",
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "outDir": "netlify/functions",
+    "sourceMap": true,
+    "strict": true,
+    "target": "ESNext",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node",
+    "types": ["node", "@netlify/functions"]
+  },
+  "include": ["netlify/functions/src/**/*.ts"],
+  "exclude": ["node_modules"]
+}
