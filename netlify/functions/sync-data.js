@@ -38,10 +38,14 @@ const syncDataHandler = async (event) => {
             },
         };
         corsHandler(mockRequest, mockResponse, async () => {
-            const { expenseName } = JSON.parse(event.body || "{}");
+            const { groupId, expenseName } = JSON.parse(event.body || "{}");
             try {
-                console.log(`Fetching data for expense: ${expenseName}`);
-                const docRef = firestoreDb.collection("expenses").doc(expenseName);
+                console.log(`Fetching data for group: ${groupId}, expense: ${expenseName}`);
+                const docRef = firestoreDb
+                    .collection("groups")
+                    .doc(groupId)
+                    .collection("expenses")
+                    .doc(expenseName);
                 const documentSnapshot = await docRef.get();
                 if (!documentSnapshot.exists) {
                     resolve({

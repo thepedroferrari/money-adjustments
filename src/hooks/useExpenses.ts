@@ -14,6 +14,7 @@ export const useExpenses = () => {
   const fetchExpenses = useStore((state) => state.fetchExpenses);
   const updateExpense = useStore((state) => state.updateExpense);
   const addExpense = useStore((state) => state.addExpense);
+  const deleteExpense = useStore((state) => state.deleteExpense); // Add deleteExpense
   const setData = useStore((state) => state.setData);
 
   const [pillSelections, setPillSelections] = useState<{
@@ -30,18 +31,20 @@ export const useExpenses = () => {
   const [editForm, setEditForm] = useState<Partial<Expense>>({});
 
   useEffect(() => {
-    if (groupId && expenseName && !expenses) {
+    if (!groupId) return;
+    if (!expenses) {
       fetchExpenses(groupId);
-    } else if (expenses && expenseName && expenses[expenseName]) {
-      setData(expenses[expenseName]);
+    } else if (expenses && expenseName && expenses[groupId]) {
+      setData(expenses[groupId][expenseName] || []);
     }
-  }, [groupId, expenses, expenseName, fetchExpenses]);
+  }, [groupId, expenses, expenseName, fetchExpenses, setData]);
 
   useEffect(() => {
-    if (expenses && expenseName && expenses[expenseName]) {
-      setData(expenses[expenseName]);
+    if (!groupId) return;
+    if (expenses && expenseName && expenses[groupId]) {
+      setData(expenses[groupId][expenseName] || []);
     }
-  }, [expenses, expenseName]);
+  }, [expenses, expenseName, groupId, setData]);
 
   const handlePillChange = (index: number, value: string) => {
     setPillSelections((prev) => ({ ...prev, [index]: value }));
@@ -64,7 +67,11 @@ export const useExpenses = () => {
   };
 
   const handleDeleteTransaction = (index: number) => {
-    setData(data.filter((_, i) => i !== index));
+    if (groupId && expenseName) {
+      const newData = data.filter((_, i) => i !== index);
+      setData(newData);
+      deleteExpense(groupId, expenseName, index); // Use deleteExpense instead of updateExpense
+    }
   };
 
   const sortData = (column: keyof Expense) => {
@@ -124,7 +131,7 @@ export const useExpenses = () => {
     handlePillChange,
     handleAccrueChange,
     handleUpdateTransaction,
-    handleDeleteTransaction,
+    handleDeleteTransaction, // Include handleDeleteTransaction in the return object
     sortData,
     handleEditChange,
     startEdit,

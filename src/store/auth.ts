@@ -27,14 +27,11 @@ export interface AuthState {
   logout: () => Promise<void>;
 }
 
-const createGroup = async (
-  groupId: string,
-  groupName: string,
-  userId: string,
-) => {
+const createGroup = async (groupId: string, groupName: string) => {
   await setDoc(doc(firebaseDb, "groups", groupId), {
-    group_name: groupName,
-    members: [userId],
+    group_settings: {
+      group_name: groupName,
+    },
     expenses: {},
   });
 };
@@ -89,10 +86,14 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
         password,
       );
       await setDoc(doc(firebaseDb, "users", userCredential.user.uid), {
+        userName: email.split("@")[0], // Placeholder for username
         groups: groupIds,
+        picture: "",
+        email: userCredential.user.email,
+        disabledList: [],
       });
       for (const groupId of groupIds) {
-        await createGroup(groupId, groupId, userCredential.user.uid); // Assuming group name is the same as group ID
+        await createGroup(groupId, groupId); // Assuming group name is the same as group ID
       }
       const userEmail = userCredential.user.email;
       if (!isValidEmail(userEmail)) {

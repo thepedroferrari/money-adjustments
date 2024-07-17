@@ -1,4 +1,3 @@
-// src/pages/ExpensesTable.tsx
 import React from "react";
 import { useExpenses } from "../hooks/useExpenses";
 import { calculatePedroKarolin, pillOptions } from "../utils/businessLogic";

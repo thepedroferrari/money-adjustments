@@ -38,10 +38,15 @@ const saveDataHandler = async (event) => {
             },
         };
         corsHandler(mockRequest, mockResponse, async () => {
-            const { expenseName, data } = JSON.parse(event.body || "{}");
+            const { groupId, expenseName, data } = JSON.parse(event.body || "{}");
             try {
-                console.log(`Saving data for expense: ${expenseName}`, data);
-                await firestoreDb.collection("expenses").doc(expenseName).set({ data });
+                console.log(`Saving data for group: ${groupId}, expense: ${expenseName}`, data);
+                await firestoreDb
+                    .collection("groups")
+                    .doc(groupId)
+                    .collection("expenses")
+                    .doc(expenseName)
+                    .set({ expenses: data });
                 resolve({
                     statusCode: 200,
                     body: JSON.stringify({ message: "Data saved successfully!" }),

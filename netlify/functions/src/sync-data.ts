@@ -1,3 +1,4 @@
+// sync-data.ts
 import { Handler, HandlerEvent, HandlerResponse } from "@netlify/functions";
 import admin from "firebase-admin";
 import cors, { CorsRequest } from "cors";
@@ -24,6 +25,7 @@ if (!admin.apps.length) {
 const firestoreDb = admin.firestore();
 
 type SyncDataRequest = {
+  groupId: string;
   expenseName: string;
 };
 
@@ -53,12 +55,18 @@ const syncDataHandler: Handler = async (
     };
 
     corsHandler(mockRequest, mockResponse, async () => {
-      const { expenseName } = JSON.parse(
+      const { groupId, expenseName } = JSON.parse(
         event.body || "{}",
       ) satisfies SyncDataRequest;
       try {
-        console.log(`Fetching data for expense: ${expenseName}`);
-        const docRef = firestoreDb.collection("expenses").doc(expenseName);
+        console.log(
+          `Fetching data for group: ${groupId}, expense: ${expenseName}`,
+        );
+        const docRef = firestoreDb
+          .collection("groups")
+          .doc(groupId)
+          .collection("expenses")
+          .doc(expenseName);
         const documentSnapshot = await docRef.get();
         if (!documentSnapshot.exists) {
           resolve({

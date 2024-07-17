@@ -1,3 +1,4 @@
+// save-data.ts
 import { Handler, HandlerEvent, HandlerResponse } from "@netlify/functions";
 import admin from "firebase-admin";
 import cors, { CorsRequest } from "cors";
@@ -31,8 +32,9 @@ type Expense = {
 };
 
 type SaveDataRequest = {
+  groupId: string;
   expenseName: string;
-  data: Expense;
+  data: Expense[];
 };
 
 const saveDataHandler: Handler = async (
@@ -61,12 +63,20 @@ const saveDataHandler: Handler = async (
     };
 
     corsHandler(mockRequest, mockResponse, async () => {
-      const { expenseName, data } = JSON.parse(
+      const { groupId, expenseName, data } = JSON.parse(
         event.body || "{}",
       ) satisfies SaveDataRequest;
       try {
-        console.log(`Saving data for expense: ${expenseName}`, data);
-        await firestoreDb.collection("expenses").doc(expenseName).set({ data });
+        console.log(
+          `Saving data for group: ${groupId}, expense: ${expenseName}`,
+          data,
+        );
+        await firestoreDb
+          .collection("groups")
+          .doc(groupId)
+          .collection("expenses")
+          .doc(expenseName)
+          .set({ expenses: data });
         resolve({
           statusCode: 200,
           body: JSON.stringify({ message: "Data saved successfully!" }),
