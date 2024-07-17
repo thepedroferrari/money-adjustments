@@ -1,3 +1,5 @@
+import { PEDRO_DEFAULT_QUOTA } from "../constants";
+
 export const calculatePedroKarolin = (price: number, percentage: string) => {
   const percentValue = parseInt(percentage) / 100;
   const pedro = price * percentValue;
@@ -28,3 +30,13 @@ export const shouldDisableRow = (item: { where: string; price: number }) => {
 };
 
 export const pillOptions = ["0%", "25%", "33%", "50%", "66%", "75%", "100%"];
+
+export const getQuotaByOwnerName = (owner: string) => {
+  if (owner === "Pedro") {
+    return PEDRO_DEFAULT_QUOTA;
+  }
+  if (owner === "Karolin") {
+    return 100 - PEDRO_DEFAULT_QUOTA;
+  }
+  return 100;
+};

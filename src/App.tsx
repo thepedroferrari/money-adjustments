@@ -1,16 +1,98 @@
-import React from 'react';
-import DataTable from './components/DataTable';
-import FileUpload from './components/FileUpload';
-import Footer from './components/Footer';
+// src/App.tsx
+import React, { useEffect } from "react";
+import {
+  createBrowserRouter,
+  Navigate,
+  RouterProvider,
+} from "react-router-dom";
+import { auth, firebaseDb } from "./firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import { useStore } from "./hooks/useStore";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Layout from "./components/Layout";
+import Home from "./pages/Home";
+import SetGroup from "./pages/SetGroup";
+import ExpensesTable from "./pages/ExpensesTable";
+import UserProfile from "./pages/UserProfile";
+import { isValidEmail } from "./utils/isValidEmail";
+
+const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({
+  element,
+}) => {
+  const user = useStore((state) => state.user);
+  const groups = useStore((state) => state.groups);
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  if (!groups || groups.length === 0) {
+    return <Navigate to="/set-group" />;
+  }
+
+  return element;
+};
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <Home />,
+      },
+      {
+        path: "login",
+        element: <Login />,
+      },
+      {
+        path: "signup",
+        element: <Signup />,
+      },
+      {
+        path: "dashboard",
+        element: <ProtectedRoute element={<Dashboard />} />,
+      },
+      {
+        path: "set-group",
+        element: <SetGroup />,
+      },
+      {
+        path: "user/:userId",
+        element: <ProtectedRoute element={<UserProfile />} />,
+      },
+      {
+        path: "group/:groupId/expenses",
+        element: <ProtectedRoute element={<ExpensesTable />} />,
+      },
+    ],
+  },
+]);
 
 const App: React.FC = () => {
-  return (
-    <div className="app">
-      <FileUpload />
-      <DataTable />
-      <Footer />
-    </div>
-  );
+  const { setUser } = useStore();
+
+  useEffect(() => {
+    const checkAuthState = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDoc = await getDoc(doc(firebaseDb, "users", currentUser.uid));
+        const groups = userDoc.data()?.groups || [];
+        const userEmail = currentUser.email;
+        if (!isValidEmail(userEmail)) {
+          console.error("Invalid email in auth state check");
+          return;
+        }
+        setUser({ uid: currentUser.uid, email: userEmail, groups });
+      }
+    };
+    checkAuthState();
+  }, [setUser]);
+
+  return <RouterProvider router={router} />;
 };
 
 export default App;

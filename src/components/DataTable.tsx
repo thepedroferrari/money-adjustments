@@ -1,11 +1,12 @@
 import React from "react";
-import { Expense, useStore } from "../hooks/useStore";
+import { useStore } from "../hooks/useStore";
 import { calculatePedroKarolin, pillOptions } from "../utils/businessLogic";
 import { formatCurrency } from "../utils/formatCurrency";
 import AddTransactionForm from "./AddTransactionForm";
 import "./DataTable.css";
 import DeleteIcon from "./DeleteIcon";
 import { AscendingIcon, DescendingIcon, UnsortedIcon } from "./SortingIcons";
+import { Expense } from "../types";
 
 const DataTable: React.FC = () => {
   const data = useStore((state) => state.data);
@@ -127,14 +128,16 @@ const DataTable: React.FC = () => {
                 <td className="number">{pedro.toFixed(2)}</td>
                 <td className="number">{karolin.toFixed(2)}</td>
                 <td>
-                  <DeleteIcon onClick={() => deleteTransaction(index)} />
+                  <button onClick={() => deleteTransaction(index)}>
+                    <DeleteIcon />
+                  </button>
                 </td>
               </tr>
             );
           })}
         </tbody>
       </table>
-      <AddTransactionForm />
+      <AddTransactionForm groupId="test-ferrari" expenseName="test" />
     </div>
   );
 };

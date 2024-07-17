@@ -6,18 +6,23 @@ import "./Footer.css";
 const Footer: React.FC = () => {
   const calculateTotals = useStore((state) => state.calculateTotals);
   const { total, partialPedro, partialKarolin } = calculateTotals();
-
+  const user = useStore((state) => state.user);
+  const groups = useStore((state) => state.groups);
   const syncData = useStore((state) => state.syncData);
   const saveData = useStore((state) => state.saveData);
 
   const handleSync = () => {
     const expenseName = "may-june-2024";
-    syncData(expenseName);
+    if (user && groups && groups.length > 0) {
+      syncData(groups[0], expenseName);
+    }
   };
 
   const handleSave = () => {
     const expenseName = "may-june-2024";
-    saveData(expenseName);
+    if (user && groups && groups.length > 0) {
+      saveData(groups[0], expenseName);
+    }
   };
 
   return (

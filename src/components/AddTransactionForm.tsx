@@ -1,3 +1,4 @@
+// src/components/AddTransactionForm.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import { useStore } from "../hooks/useStore";
 import { pillOptions } from "../utils/businessLogic";
@@ -11,20 +12,30 @@ const initialTransaction = {
   pillSelection: "66%",
 };
 
-const AddTransactionForm: React.FC = () => {
-  const data = useStore((state) => state.data);
-  const setData = useStore((state) => state.setData);
+const AddTransactionForm: React.FC<{
+  groupId: string;
+  expenseName: string;
+}> = ({ groupId, expenseName }) => {
+  const addExpense = useStore((state) => state.addExpense);
 
   const { formState, handleChange, resetForm, isFormValid } = useForm();
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      const newEntry = { ...formState };
-      setData([...data, newEntry]);
+      if (!expenseName) {
+        throw new Error("No expense name provided");
+      }
+
+      const newEntry = {
+        ...formState,
+        accrue: true,
+        quota: parseInt(formState.pillSelection),
+      };
+      addExpense(groupId, expenseName, newEntry);
       resetForm();
     },
-    [formState, data, setData, resetForm],
+    [formState, groupId, expenseName, addExpense, resetForm],
   );
 
   return (
