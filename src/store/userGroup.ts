@@ -1,5 +1,5 @@
 // src/store/userGroup.ts
-import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { StateCreator } from "zustand";
 import { firebaseDb } from "../firebaseConfig";
 import { Expense, User } from "../types";
@@ -58,12 +58,6 @@ export const createUserGroupSlice: StateCreator<UserGroupState> = (
       },
     };
     set({ expenses: updatedExpenses });
-    await updateDoc(
-      doc(firebaseDb, `groups/${groupId}/expenses`, expenseName),
-      {
-        expenses: updatedExpenses[groupId][expenseName], // update only the specific expenseName document
-      },
-    );
   },
   updateExpense: async (groupId, expenseName, index, updatedExpense) => {
     const { expenses } = get();
@@ -81,12 +75,6 @@ export const createUserGroupSlice: StateCreator<UserGroupState> = (
       [groupId]: updatedGroupExpenses,
     };
     set({ expenses: updatedExpenses });
-    await updateDoc(
-      doc(firebaseDb, `groups/${groupId}/expenses`, expenseName),
-      {
-        expenses: updatedGroupExpenses[expenseName], // update only the specific expenseName document
-      },
-    );
   },
   deleteExpense: async (groupId, expenseName, index) => {
     const { expenses } = get();
@@ -101,12 +89,7 @@ export const createUserGroupSlice: StateCreator<UserGroupState> = (
       ...expenses,
       [groupId]: updatedGroupExpenses,
     };
+    console.log({ updatedExpenses });
     set({ expenses: updatedExpenses });
-    await updateDoc(
-      doc(firebaseDb, `groups/${groupId}/expenses`, expenseName),
-      {
-        expenses: updatedGroupExpenses[expenseName], // update only the specific expenseName document
-      },
-    );
   },
 });

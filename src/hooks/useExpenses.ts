@@ -14,7 +14,7 @@ export const useExpenses = () => {
   const fetchExpenses = useStore((state) => state.fetchExpenses);
   const updateExpense = useStore((state) => state.updateExpense);
   const addExpense = useStore((state) => state.addExpense);
-  const deleteExpense = useStore((state) => state.deleteExpense); // Add deleteExpense
+  const deleteExpense = useStore((state) => state.deleteExpense);
   const setData = useStore((state) => state.setData);
 
   const [pillSelections, setPillSelections] = useState<{
@@ -67,10 +67,11 @@ export const useExpenses = () => {
   };
 
   const handleDeleteTransaction = (index: number) => {
+    console.log({ groupId, expenseName });
     if (groupId && expenseName) {
       const newData = data.filter((_, i) => i !== index);
       setData(newData);
-      deleteExpense(groupId, expenseName, index); // Use deleteExpense instead of updateExpense
+      deleteExpense(groupId, expenseName, index);
     }
   };
 
@@ -131,7 +132,7 @@ export const useExpenses = () => {
     handlePillChange,
     handleAccrueChange,
     handleUpdateTransaction,
-    handleDeleteTransaction, // Include handleDeleteTransaction in the return object
+    handleDeleteTransaction,
     sortData,
     handleEditChange,
     startEdit,
