@@ -1,6 +1,7 @@
 import React from "react";
 import { useStore } from "../hooks/useStore";
 import { formatCurrency } from "../utils/formatCurrency";
+import { useParams } from "react-router-dom";
 import "./Footer.css";
 
 const Footer: React.FC = () => {
@@ -11,16 +12,16 @@ const Footer: React.FC = () => {
   const syncData = useStore((state) => state.syncData);
   const saveData = useStore((state) => state.saveData);
 
+  const { expenseName } = useParams<{ expenseName: string }>();
+
   const handleSync = () => {
-    const expenseName = "may-june-2024";
-    if (user && groups && groups.length > 0) {
+    if (user && groups && groups.length > 0 && expenseName) {
       syncData(groups[0], expenseName);
     }
   };
 
   const handleSave = () => {
-    const expenseName = "may-june-2024";
-    if (user && groups && groups.length > 0) {
+    if (user && groups && groups.length > 0 && expenseName) {
       saveData(groups[0], expenseName);
     }
   };

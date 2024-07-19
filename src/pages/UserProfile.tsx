@@ -1,7 +1,9 @@
+// src/pages/UserProfile.tsx
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useStore } from "../hooks/useStore";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { saveUserProfile } from "../utils/firebaseFunctions";
+import { getDoc, doc } from "firebase/firestore";
 import { firebaseDb } from "../firebaseConfig";
 
 const UserProfile: React.FC = () => {
@@ -20,8 +22,7 @@ const UserProfile: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (userId) {
-        const userRef = doc(firebaseDb, "users", userId);
-        const userDoc = await getDoc(userRef);
+        const userDoc = await getDoc(doc(firebaseDb, "users", userId));
         if (userDoc.exists()) {
           const data = userDoc.data() as {
             displayName: string;
@@ -54,8 +55,11 @@ const UserProfile: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (userId) {
-      const userRef = doc(firebaseDb, "users", userId);
-      await setDoc(userRef, formData, { merge: true });
+      try {
+        await saveUserProfile(userId, formData);
+      } catch (error) {
+        console.error("Error saving user profile:", error);
+      }
     }
   };
 

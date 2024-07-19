@@ -1,4 +1,3 @@
-// src/hooks/useExpenses.ts
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useStore } from "./useStore";
@@ -12,9 +11,6 @@ export const useExpenses = () => {
   const expenses = useStore((state) => state.expenses);
   const data = useStore((state) => state.data);
   const fetchExpenses = useStore((state) => state.fetchExpenses);
-  const updateExpense = useStore((state) => state.updateExpense);
-  const addExpense = useStore((state) => state.addExpense);
-  const deleteExpense = useStore((state) => state.deleteExpense);
   const setData = useStore((state) => state.setData);
 
   const [pillSelections, setPillSelections] = useState<{
@@ -29,6 +25,12 @@ export const useExpenses = () => {
   const [sortColumn, setSortColumn] = useState<keyof Expense>("date");
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Expense>>({});
+  const [newExpense, setNewExpense] = useState<Partial<Expense>>({
+    date: "",
+    where: "",
+    owner: "",
+    price: 0,
+  });
 
   useEffect(() => {
     if (!groupId) return;
@@ -55,23 +57,29 @@ export const useExpenses = () => {
   };
 
   const handleUpdateTransaction = (index: number, updatedExpense: Expense) => {
-    if (groupId && expenseName) {
-      updateExpense(groupId, expenseName, index, updatedExpense);
-      const newData = data.map((expense, i) =>
-        i === index ? updatedExpense : expense,
-      );
-      setData(newData);
-      setEditIndex(null);
-      setEditForm({});
-    }
+    const newData = data.map((expense, i) =>
+      i === index ? updatedExpense : expense,
+    );
+    setData(newData);
+    setEditIndex(null);
+    setEditForm({});
   };
 
   const handleDeleteTransaction = (index: number) => {
-    console.log({ groupId, expenseName });
-    if (groupId && expenseName) {
-      const newData = data.filter((_, i) => i !== index);
+    const newData = data.filter((_, i) => i !== index);
+    setData(newData);
+  };
+
+  const handleAddExpense = () => {
+    if (
+      newExpense.date &&
+      newExpense.where &&
+      newExpense.owner &&
+      newExpense.price
+    ) {
+      const newData = [...data, newExpense as Expense];
       setData(newData);
-      deleteExpense(groupId, expenseName, index);
+      setNewExpense({ date: "", where: "", owner: "", price: 0 });
     }
   };
 
@@ -109,6 +117,16 @@ export const useExpenses = () => {
     }));
   };
 
+  const handleNewExpenseChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setNewExpense((prev) => ({
+      ...prev,
+      [name]: name === "price" ? parseFloat(value) : value,
+    }));
+  };
+
   const startEdit = (index: number, expense: Expense) => {
     setEditIndex(index);
     setEditForm(expense);
@@ -127,14 +145,16 @@ export const useExpenses = () => {
     sortColumn,
     editIndex,
     editForm,
+    newExpense,
     expenseName,
-    addExpense,
+    addExpense: handleAddExpense,
     handlePillChange,
     handleAccrueChange,
     handleUpdateTransaction,
     handleDeleteTransaction,
-    sortData,
     handleEditChange,
+    handleNewExpenseChange,
+    sortData,
     startEdit,
     cancelEdit,
   };

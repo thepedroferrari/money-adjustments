@@ -1,8 +1,8 @@
+// src/pages/SetGroup.tsx
 import React, { useState } from "react";
 import { useStore } from "../hooks/useStore";
 import { useNavigate } from "react-router-dom";
-import { doc, getDoc, setDoc, collection } from "firebase/firestore";
-import { firebaseDb } from "../firebaseConfig";
+import { setGroup } from "../utils/firebaseFunctions";
 
 const SetGroup: React.FC = () => {
   const [groupId, setGroupId] = useState("");
@@ -12,43 +12,13 @@ const SetGroup: React.FC = () => {
 
   const handleSetGroup = async () => {
     if (user && groupId) {
-      const groupRef = doc(firebaseDb, "groups", groupId);
-      const groupDoc = await getDoc(groupRef);
-
-      if (!groupDoc.exists()) {
-        // Create the group if it doesn't exist
-        await setDoc(groupRef, {
-          group_name: groupId,
-          members: [user.uid],
-        });
-
-        // Create the expenses sub-collection
-        const expensesRef = collection(
-          firebaseDb,
-          `groups/${groupId}/expenses`,
-        );
-        // Add an empty document to initialize the sub-collection
-        await setDoc(doc(expensesRef, "init"), {});
-      } else {
-        // If the group exists, add the user to the members list if not already present
-        const groupData = groupDoc.data();
-        if (groupData && !groupData.members.includes(user.uid)) {
-          await setDoc(
-            groupRef,
-            { members: [...groupData.members, user.uid] },
-            { merge: true },
-          );
-        }
+      try {
+        await setGroup(groupId, user.uid);
+        setUserGroup(user, [...(user.groups || []), groupId]);
+        navigate("/group-overview");
+      } catch (error) {
+        console.error("Error setting group:", error);
       }
-
-      // Set the group for the user
-      await setDoc(
-        doc(firebaseDb, "users", user.uid),
-        { groups: [groupId] },
-        { merge: true },
-      );
-      setUserGroup(user, [groupId]);
-      navigate("/dashboard");
     }
   };
 

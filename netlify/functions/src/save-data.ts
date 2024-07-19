@@ -26,9 +26,11 @@ const firestoreDb = admin.firestore();
 
 type Expense = {
   date: string;
-  where: string;
   owner: string;
+  where: string;
   price: number;
+  accrue: boolean;
+  quota: number;
 };
 
 type SaveDataRequest = {

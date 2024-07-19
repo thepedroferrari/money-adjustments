@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useEffect } from "react";
 import {
   createBrowserRouter,
@@ -8,14 +7,15 @@ import {
 import { auth, firebaseDb } from "./firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { useStore } from "./hooks/useStore";
-import Dashboard from "./pages/Dashboard";
+import GroupOverview from "./pages/GroupOverview";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Layout from "./components/Layout";
-import Home from "./pages/Home";
 import SetGroup from "./pages/SetGroup";
 import ExpensesTable from "./pages/ExpensesTable";
 import UserProfile from "./pages/UserProfile";
+import InviteMember from "./pages/InviteMember";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import { isValidEmail } from "./utils/isValidEmail";
 
 const ProtectedRoute: React.FC<{ element: React.ReactElement }> = ({
@@ -42,7 +42,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />,
+        element: <ProtectedRoute element={<GroupOverview />} />,
       },
       {
         path: "login",
@@ -53,8 +53,8 @@ const router = createBrowserRouter([
         element: <Signup />,
       },
       {
-        path: "dashboard",
-        element: <ProtectedRoute element={<Dashboard />} />,
+        path: "group-overview",
+        element: <ProtectedRoute element={<GroupOverview />} />,
       },
       {
         path: "set-group",
@@ -65,8 +65,16 @@ const router = createBrowserRouter([
         element: <ProtectedRoute element={<UserProfile />} />,
       },
       {
-        path: "group/:groupId/expenses",
+        path: "group/:groupId/expenses/:expenseName",
         element: <ProtectedRoute element={<ExpensesTable />} />,
+      },
+      {
+        path: "group/:groupId/invite",
+        element: <ProtectedRoute element={<InviteMember />} />,
+      },
+      {
+        path: "invitation/:invitationId",
+        element: <ProtectedRoute element={<AcceptInvitation />} />,
       },
     ],
   },

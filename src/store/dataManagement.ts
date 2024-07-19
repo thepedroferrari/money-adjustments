@@ -1,14 +1,13 @@
-// src/store/dataManagement.ts
 import * as XLSX from "xlsx";
 import { StateCreator } from "zustand";
 import { Expense } from "../types";
 import { getQuotaByOwnerName, shouldDisableRow } from "../utils/businessLogic";
-
-const isLocalhost = window.location.hostname === "localhost";
-
-const baseUrl = isLocalhost
-  ? "http://localhost:8888"
-  : "https://money-adjustment.netlify.app";
+import {
+  saveData,
+  syncData,
+  addExpenseSet,
+  deleteExpenseSet,
+} from "../utils/firebaseFunctions";
 
 export interface DataManagementState {
   data: Expense[];
@@ -18,6 +17,8 @@ export interface DataManagementState {
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   syncData: (groupId: string, expenseName: string) => void;
   saveData: (groupId: string, expenseName: string) => void;
+  addExpenseSet: (groupId: string, expenseName: string) => void;
+  deleteExpenseSet: (groupId: string, expenseName: string) => void;
 }
 
 export const createDataManagementSlice: StateCreator<DataManagementState> = (
@@ -83,20 +84,9 @@ export const createDataManagementSlice: StateCreator<DataManagementState> = (
   },
   syncData: async (groupId, expenseName) => {
     try {
-      const response = await fetch(`${baseUrl}/.netlify/functions/sync-data`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ groupId, expenseName }),
-      });
-      const result = await response.json();
-      if (response.ok) {
-        const data = result.data;
-        set({ data });
-      } else {
-        console.error("Error syncing data:", result);
-      }
+      const result = await syncData(groupId, expenseName);
+      const data = result.data;
+      set({ data });
     } catch (error) {
       console.error("Error syncing data:", error);
     }
@@ -104,19 +94,25 @@ export const createDataManagementSlice: StateCreator<DataManagementState> = (
   saveData: async (groupId, expenseName) => {
     const { data } = get();
     try {
-      const response = await fetch(`${baseUrl}/.netlify/functions/save-data`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ groupId, expenseName, data }),
-      });
-      const result = await response.json();
-      if (!response.ok) {
-        console.error("Error saving data:", result);
-      }
+      await saveData(groupId, expenseName, data);
     } catch (error) {
       console.error("Error saving data:", error);
+    }
+  },
+  addExpenseSet: async (groupId, expenseName) => {
+    try {
+      await addExpenseSet(groupId, expenseName);
+      // Optionally fetch and update the group expenses
+    } catch (error) {
+      console.error("Error adding expense set:", error);
+    }
+  },
+  deleteExpenseSet: async (groupId, expenseName) => {
+    try {
+      await deleteExpenseSet(groupId, expenseName);
+      // Optionally fetch and update the group expenses
+    } catch (error) {
+      console.error("Error deleting expense set:", error);
     }
   },
 });
@@ -201,7 +197,7 @@ const handleAmexPlatinumCard = (jsonData: AmexPlatinumCard[]): Expense[] => {
 
   return filteredData.map((row) => {
     const date = row["Transaktionsspecifikationer"];
-    const where = row["__EMPTY_1"];
+    const where = row["__EMPTY_4"];
     const price = row["__EMPTY_2"] * -1;
     const accrue = shouldDisableRow({ where, price });
     const owner = getOwnerName(row["__EMPTY"]);

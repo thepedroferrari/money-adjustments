@@ -6,12 +6,13 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { StateCreator } from "zustand";
 import { auth, firebaseDb, googleProvider } from "../firebaseConfig";
 import { User } from "../types";
 import { isValidEmail } from "../utils/isValidEmail";
 import { useStore } from "../hooks/useStore";
+import { setGroup, saveUserProfile } from "../utils/firebaseFunctions";
 
 export interface AuthState {
   user: User | null;
@@ -26,15 +27,6 @@ export interface AuthState {
   ) => Promise<void>;
   logout: () => Promise<void>;
 }
-
-const createGroup = async (groupId: string, groupName: string) => {
-  await setDoc(doc(firebaseDb, "groups", groupId), {
-    group_settings: {
-      group_name: groupName,
-    },
-    expenses: {},
-  });
-};
 
 export const createAuthSlice: StateCreator<AuthState> = (set) => ({
   user: null,
@@ -85,7 +77,7 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
         email,
         password,
       );
-      await setDoc(doc(firebaseDb, "users", userCredential.user.uid), {
+      await saveUserProfile(userCredential.user.uid, {
         userName: email.split("@")[0], // Placeholder for username
         groups: groupIds,
         picture: "",
@@ -93,7 +85,7 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
         disabledList: [],
       });
       for (const groupId of groupIds) {
-        await createGroup(groupId, groupId); // Assuming group name is the same as group ID
+        await setGroup(groupId, userCredential.user.uid);
       }
       const userEmail = userCredential.user.email;
       if (!isValidEmail(userEmail)) {

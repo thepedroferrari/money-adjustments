@@ -1,7 +1,7 @@
-// src/components/Layout.tsx
 import React from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { useStore } from "../hooks/useStore";
+import Invitations from "../pages/Invitations";
 import "./Layout.css";
 
 const Layout: React.FC = () => {
@@ -18,11 +18,7 @@ const Layout: React.FC = () => {
     <div className="app">
       <nav>
         <Link to="/">Home</Link>
-        <ul>
-          <li>
-            <Link to="/dashboard">Expenses</Link>
-          </li>
-        </ul>
+        <ul></ul>
         {user ? (
           <div>
             <Link to={`/user/${user.uid}`}>{user.email.split("@")[0]}</Link>
@@ -35,6 +31,7 @@ const Layout: React.FC = () => {
           </div>
         )}
       </nav>
+      {user && <Invitations />}
       <div className="content">
         <main>
           <Outlet />
