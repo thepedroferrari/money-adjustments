@@ -18,7 +18,6 @@ import { shouldDisableRow } from "../utils/businessLogic";
 
 export interface DataManagementState {
   data: Expense[];
-  pillSelections: { [key: number]: string };
   setData: (data: Expense[]) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   syncData: (groupId: string, expenseName: string) => void;
@@ -32,15 +31,9 @@ export const createDataManagementSlice: StateCreator<DataManagementState> = (
   get,
 ) => ({
   data: [],
-  pillSelections: {},
   setData: (data) => {
-    const initialPillSelections: { [key: number]: string } = {};
-    data.forEach((_, index) => {
-      initialPillSelections[index] = "66%";
-    });
     set({
       data,
-      pillSelections: initialPillSelections,
     });
   },
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,8 +80,8 @@ export const createDataManagementSlice: StateCreator<DataManagementState> = (
   syncData: async (groupId, expenseName) => {
     try {
       const result = await syncData(groupId, expenseName);
-      const data = result.data;
-      set({ data });
+      const expenses = result.expenses;
+      set({ data: expenses });
     } catch (error) {
       console.error("Error syncing data:", error);
     }

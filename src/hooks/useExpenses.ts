@@ -1,16 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useStore } from "./useStore";
 import { Expense } from "../types";
+import { useStore } from "./useStore";
 
 export const useExpenses = () => {
-  const { groupId, expenseName } = useParams<{
-    groupId: string;
+  const { expenseName } = useParams<{
     expenseName: string;
   }>();
-  const expenses = useStore((state) => state.expenses);
+  // const expenses = useStore((state) => state.expenses);
   const data = useStore((state) => state.data);
-  const fetchExpenses = useStore((state) => state.fetchExpenses);
+  // const fetchExpenses = useStore((state) => state.fetchExpenses);
   const setData = useStore((state) => state.setData);
   const handlePillChangeInStore = useStore((state) => state.handlePillChange);
   const sortOrder = useStore((state) => state.sortOrder);
@@ -25,22 +24,6 @@ export const useExpenses = () => {
     owner: "",
     price: 0,
   });
-
-  useEffect(() => {
-    if (!groupId) return;
-    if (!expenses) {
-      fetchExpenses(groupId);
-    } else if (expenses && expenseName && expenses[groupId]) {
-      setData(expenses[groupId][expenseName] || []);
-    }
-  }, [groupId, expenses, expenseName, fetchExpenses, setData]);
-
-  useEffect(() => {
-    if (!groupId) return;
-    if (expenses && expenseName && expenses[groupId]) {
-      setData(expenses[groupId][expenseName] || []);
-    }
-  }, [expenses, expenseName, groupId, setData]);
 
   const handlePillChange = (id: string, value: string) => {
     handlePillChangeInStore(id, value);
@@ -121,6 +104,7 @@ export const useExpenses = () => {
     handleDeleteTransaction,
     handleEditChange,
     handleNewExpenseChange,
+    setData,
     sortData,
     startEdit,
     cancelEdit,

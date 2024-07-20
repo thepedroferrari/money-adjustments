@@ -1,0 +1,54 @@
+/* loading.css */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.loading .loader {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  position: relative;
+  animation: spin 1.5s linear infinite;
+}
+
+.loading .loader::before,
+.loading .loader::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+.loading .loader::before {
+  width: 100px;
+  height: 100px;
+  border: 10px solid rgba(0, 162, 255, 0.3);
+}
+
+.loading .loader::after {
+  width: 100px;
+  height: 100px;
+  border: 10px solid rgba(0, 162, 255, 0.6);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(0.5);
+  }
+  50% {
+    transform: scale(1);
+  }
+}
