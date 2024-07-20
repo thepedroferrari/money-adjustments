@@ -1,7 +1,6 @@
 import * as XLSX from "xlsx";
 import { StateCreator } from "zustand";
 import { Expense } from "../types";
-import { shouldDisableRow } from "../utils/businessLogic";
 import {
   addExpenseSet,
   deleteExpenseSet,
@@ -15,11 +14,11 @@ import {
   isHandelsbankenCard,
   ValidCards,
 } from "../utils/importCardLogic";
+import { shouldDisableRow } from "../utils/businessLogic";
 
 export interface DataManagementState {
   data: Expense[];
   pillSelections: { [key: number]: string };
-  accrueSelections: { [key: number]: boolean };
   setData: (data: Expense[]) => void;
   handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   syncData: (groupId: string, expenseName: string) => void;
@@ -34,24 +33,17 @@ export const createDataManagementSlice: StateCreator<DataManagementState> = (
 ) => ({
   data: [],
   pillSelections: {},
-  accrueSelections: {},
   setData: (data) => {
     const initialPillSelections: { [key: number]: string } = {};
-    const initialAccrueSelections: { [key: number]: boolean } = {};
-    data.forEach((item, index) => {
+    data.forEach((_, index) => {
       initialPillSelections[index] = "66%";
-      initialAccrueSelections[index] = item.price <= 0;
-      if (shouldDisableRow(item)) {
-        initialAccrueSelections[index] = false;
-      }
     });
     set({
       data,
       pillSelections: initialPillSelections,
-      accrueSelections: initialAccrueSelections,
     });
   },
-  handleFileUpload: (e) => {
+  handleFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -81,7 +73,10 @@ export const createDataManagementSlice: StateCreator<DataManagementState> = (
           updatedData = handleAmexPlatinumCard(jsonData);
         }
 
-        console.log({ updatedData });
+        updatedData = updatedData.filter(
+          (expense) => !shouldDisableRow(expense),
+        );
+
         set((state) => ({
           data: [...state.data, ...updatedData],
         }));

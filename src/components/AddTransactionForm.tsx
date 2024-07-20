@@ -1,8 +1,9 @@
-// src/components/AddTransactionForm.tsx
 import React, { useCallback, useEffect, useState } from "react";
 import { useStore } from "../hooks/useStore";
 import { pillOptions } from "../utils/businessLogic";
+import { v4 as uuidv4 } from "uuid";
 import "./AddTransactionForm.css";
+import { Expense } from "../types";
 
 const initialTransaction = {
   date: "",
@@ -12,30 +13,26 @@ const initialTransaction = {
   pillSelection: "66%",
 };
 
-const AddTransactionForm: React.FC<{
-  groupId: string;
-  expenseName: string;
-}> = ({ groupId, expenseName }) => {
-  const addExpense = useStore((state) => state.addExpense);
-
+const AddTransactionForm = () => {
+  const setData = useStore((state) => state.setData);
+  const data = useStore((state) => state.data);
   const { formState, handleChange, resetForm, isFormValid } = useForm();
 
   const handleSubmit = useCallback(
     (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
-      if (!expenseName) {
-        throw new Error("No expense name provided");
-      }
 
-      const newEntry = {
+      const newExpense = {
+        id: uuidv4(),
         ...formState,
-        accrue: true,
         quota: parseInt(formState.pillSelection),
-      };
-      addExpense(groupId, expenseName, newEntry);
+      } satisfies Expense;
+
+      setData([...data, newExpense]);
+
       resetForm();
     },
-    [formState, groupId, expenseName, addExpense, resetForm],
+    [data, formState, resetForm, setData],
   );
 
   return (
@@ -94,8 +91,8 @@ const useForm = (
   const [isFormValid, setIsFormValid] = useState(false);
 
   useEffect(() => {
-    const { date, owner, where, price, pillSelection } = formState;
-    setIsFormValid(!!(date && owner && where && price > 0 && pillSelection));
+    const { date, owner, where, pillSelection, price } = formState;
+    setIsFormValid(!!(date && owner && where && pillSelection && price));
   }, [formState]);
 
   const handleChange = useCallback(

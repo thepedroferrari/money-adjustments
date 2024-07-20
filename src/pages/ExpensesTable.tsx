@@ -1,35 +1,28 @@
-import React from "react";
-import { useExpenses } from "../hooks/useExpenses";
-import { calculatePedroKarolin, pillOptions } from "../utils/businessLogic";
-import { formatCurrency } from "../utils/formatCurrency";
+import React, { useCallback } from "react";
 import AddTransactionForm from "../components/AddTransactionForm";
 import "../components/DataTable.css";
-import { Expense } from "../types";
+import DeleteIcon from "../components/DeleteIcon";
+import FileUpload from "../components/FileUpload";
+import Footer from "../components/Footer";
 import {
   AscendingIcon,
   DescendingIcon,
   UnsortedIcon,
 } from "../components/SortingIcons";
-import FileUpload from "../components/FileUpload";
-import { useParams } from "react-router-dom";
-import Footer from "../components/Footer";
-import DeleteIcon from "../components/DeleteIcon";
+import { useExpenses } from "../hooks/useExpenses";
+import { Expense } from "../types";
+import { calculatePedroKarolin, pillOptions } from "../utils/businessLogic";
+import { formatCurrency } from "../utils/formatCurrency";
 
 const ExpensesTable: React.FC = () => {
-  const { groupId, expenseName } = useParams<{
-    groupId: string;
-    expenseName: string;
-  }>();
   const {
     data,
     pillSelections,
-    accrueSelections,
     sortOrder,
     sortColumn,
     editIndex,
     editForm,
     handlePillChange,
-    handleAccrueChange,
     handleUpdateTransaction,
     handleDeleteTransaction,
     sortData,
@@ -38,18 +31,21 @@ const ExpensesTable: React.FC = () => {
     cancelEdit,
   } = useExpenses();
 
-  const getSortIcon = (column: string) => {
-    if (sortColumn !== column) {
+  const getSortIcon = useCallback(
+    (column: string) => {
+      if (sortColumn !== column) {
+        return <UnsortedIcon />;
+      }
+      if (sortOrder === "asc") {
+        return <AscendingIcon />;
+      }
+      if (sortOrder === "desc") {
+        return <DescendingIcon />;
+      }
       return <UnsortedIcon />;
-    }
-    if (sortOrder === "asc") {
-      return <AscendingIcon />;
-    }
-    if (sortOrder === "desc") {
-      return <DescendingIcon />;
-    }
-    return <UnsortedIcon />;
-  };
+    },
+    [sortColumn, sortOrder],
+  );
 
   return (
     <div className="table-container">
@@ -57,11 +53,6 @@ const ExpensesTable: React.FC = () => {
       <table>
         <thead>
           <tr>
-            <th>
-              <div className="header-cell">
-                <span>Accrue</span>
-              </div>
-            </th>
             <th onClick={() => sortData("owner")}>
               <div className="header-cell">
                 <span>Owner</span>
@@ -112,24 +103,7 @@ const ExpensesTable: React.FC = () => {
           {data.map((item, index) => {
             if (index === editIndex) {
               return (
-                <tr key={index}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      name="accrue"
-                      checked={editForm.accrue !== false}
-                      onChange={(e) =>
-                        handleEditChange({
-                          ...e,
-                          target: {
-                            ...e.target,
-                            name: "accrue",
-                            value: e.target.checked ? "true" : "false",
-                          },
-                        })
-                      }
-                    />
-                  </td>
+                <tr key={item.id}>
                   <td>
                     <input
                       type="text"
@@ -207,16 +181,7 @@ const ExpensesTable: React.FC = () => {
             );
 
             return (
-              <tr key={index}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={accrueSelections[index] !== false}
-                    onChange={(e) =>
-                      handleAccrueChange(index, e.target.checked)
-                    }
-                  />
-                </td>
+              <tr key={item.id}>
                 <td>{item.owner}</td>
                 <td>{item.date}</td>
                 <td>{item.where}</td>
@@ -246,9 +211,7 @@ const ExpensesTable: React.FC = () => {
           })}
         </tbody>
       </table>
-      {groupId && expenseName && (
-        <AddTransactionForm groupId={groupId} expenseName={expenseName} />
-      )}
+      <AddTransactionForm />
       <Footer />
     </div>
   );

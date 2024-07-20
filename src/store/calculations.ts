@@ -6,11 +6,9 @@ import { calculatePedroKarolin } from "../utils/businessLogic";
 export interface CalculationState {
   data: Expense[];
   pillSelections: { [key: number]: string };
-  accrueSelections: { [key: number]: boolean };
   sortOrder: "asc" | "desc" | "original";
   sortColumn: keyof Expense;
   handlePillChange: (index: number, value: string) => void;
-  handleAccrueChange: (index: number, checked: boolean) => void;
   deleteTransaction: (index: number) => void;
   calculateTotals: () => {
     total: number;
@@ -27,17 +25,11 @@ export const createCalculationSlice: StateCreator<CalculationState> = (
 ) => ({
   data: [],
   pillSelections: {},
-  accrueSelections: {},
   sortOrder: "original",
   sortColumn: "date",
   handlePillChange: (index, value) => {
     set((state) => ({
       pillSelections: { ...state.pillSelections, [index]: value },
-    }));
-  },
-  handleAccrueChange: (index, checked) => {
-    set((state) => ({
-      accrueSelections: { ...state.accrueSelections, [index]: checked },
     }));
   },
   deleteTransaction: (index) => {
@@ -46,21 +38,19 @@ export const createCalculationSlice: StateCreator<CalculationState> = (
     }));
   },
   calculateTotals: () => {
-    const { data, pillSelections, accrueSelections } = get();
+    const { data, pillSelections } = get();
     let total = 0;
     let partialPedro = 0;
     let partialKarolin = 0;
 
     data.forEach((item, index) => {
-      if (accrueSelections[index] !== false) {
-        const { pedro, karolin } = calculatePedroKarolin(
-          item.price,
-          pillSelections[index] || "66%",
-        );
-        total += item.price;
-        partialPedro += pedro;
-        partialKarolin += karolin;
-      }
+      const { pedro, karolin } = calculatePedroKarolin(
+        item.price,
+        pillSelections[index] || "66%",
+      );
+      total += item.price;
+      partialPedro += pedro;
+      partialKarolin += karolin;
     });
 
     return { total, partialPedro, partialKarolin };

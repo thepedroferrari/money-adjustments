@@ -3,6 +3,11 @@ import { collection, getDocs } from "firebase/firestore";
 import { StateCreator } from "zustand";
 import { firebaseDb } from "../firebaseConfig";
 import { Expense, User } from "../types";
+import {
+  deleteExpenseFromGroup,
+  mergeExpenses,
+  updateExpenseInGroup,
+} from "../utils/transformExpenses";
 
 export interface UserGroupState {
   user: User | null;
@@ -23,73 +28,56 @@ export interface UserGroupState {
   deleteExpense: (groupId: string, expenseName: string, index: number) => void;
 }
 
-export const createUserGroupSlice: StateCreator<UserGroupState> = (
-  set,
-  get,
-) => ({
+export const createUserGroupSlice: StateCreator<UserGroupState> = (set) => ({
   user: null,
   groups: null,
   expenses: null,
   setUser: (user, groups = null) => set({ user, groups }),
   setExpenses: (expenses) => set({ expenses }),
   fetchExpenses: async (groupId) => {
-    const expensesRef = collection(firebaseDb, `groups/${groupId}/expenses`);
-    const expensesSnapshot = await getDocs(expensesRef);
-    const expensesData: { [expenseName: string]: Expense[] } = {};
-    expensesSnapshot.forEach((doc) => {
-      const expenseData = doc.data() as { [expenseName: string]: Expense[] };
-      Object.keys(expenseData).forEach((expenseName) => {
-        if (!expensesData[expenseName]) {
-          expensesData[expenseName] = [];
-        }
-        expensesData[expenseName].push(...expenseData[expenseName]);
+    try {
+      const expensesRef = collection(firebaseDb, `groups/${groupId}/expenses`);
+      const expensesSnapshot = await getDocs(expensesRef);
+      const expensesData: { [expenseName: string]: Expense[] } = {};
+      expensesSnapshot.forEach((doc) => {
+        const expenseData = doc.data() as { [expenseName: string]: Expense[] };
+        Object.keys(expenseData).forEach((expenseName) => {
+          if (!expensesData[expenseName]) {
+            expensesData[expenseName] = [];
+          }
+          expensesData[expenseName].push(...expenseData[expenseName]);
+        });
       });
-    });
 
-    set({ expenses: { [groupId]: expensesData } });
+      set({ expenses: { [groupId]: expensesData } });
+    } catch (error) {
+      console.error("Error fetching expenses", error);
+    }
   },
-  addExpense: async (groupId, expenseName, expense) => {
-    const { expenses } = get();
-    const updatedExpenses = {
-      ...expenses,
-      [groupId]: {
-        ...expenses?.[groupId],
-        [expenseName]: [...(expenses?.[groupId]?.[expenseName] || []), expense],
-      },
-    };
-    set({ expenses: updatedExpenses });
+  addExpense: (groupId, expenseName, expense) => {
+    set((state) => ({
+      expenses: mergeExpenses(state.expenses, groupId, expenseName, expense),
+    }));
   },
   updateExpense: async (groupId, expenseName, index, updatedExpense) => {
-    const { expenses } = get();
-    const groupExpenses = expenses?.[groupId] || {};
-    const expenseList = groupExpenses[expenseName] || [];
-    const updatedExpenseList = expenseList.map((expense, i) =>
-      i === index ? updatedExpense : expense,
-    );
-    const updatedGroupExpenses = {
-      ...groupExpenses,
-      [expenseName]: updatedExpenseList,
-    };
-    const updatedExpenses = {
-      ...expenses,
-      [groupId]: updatedGroupExpenses,
-    };
-    set({ expenses: updatedExpenses });
+    set((state) => ({
+      expenses: updateExpenseInGroup(
+        state.expenses,
+        groupId,
+        expenseName,
+        index,
+        updatedExpense,
+      ),
+    }));
   },
   deleteExpense: async (groupId, expenseName, index) => {
-    const { expenses } = get();
-    const groupExpenses = expenses?.[groupId] || {};
-    const expenseList = groupExpenses[expenseName] || [];
-    const updatedExpenseList = expenseList.filter((_, i) => i !== index);
-    const updatedGroupExpenses = {
-      ...groupExpenses,
-      [expenseName]: updatedExpenseList,
-    };
-    const updatedExpenses = {
-      ...expenses,
-      [groupId]: updatedGroupExpenses,
-    };
-    console.log({ updatedExpenses });
-    set({ expenses: updatedExpenses });
+    set((state) => ({
+      expenses: deleteExpenseFromGroup(
+        state.expenses,
+        groupId,
+        expenseName,
+        index,
+      ),
+    }));
   },
 });

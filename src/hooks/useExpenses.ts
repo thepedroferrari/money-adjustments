@@ -16,9 +16,6 @@ export const useExpenses = () => {
   const [pillSelections, setPillSelections] = useState<{
     [key: number]: string;
   }>({});
-  const [accrueSelections, setAccrueSelections] = useState<{
-    [key: number]: boolean;
-  }>({});
   const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "original">(
     "original",
   );
@@ -50,10 +47,6 @@ export const useExpenses = () => {
 
   const handlePillChange = (index: number, value: string) => {
     setPillSelections((prev) => ({ ...prev, [index]: value }));
-  };
-
-  const handleAccrueChange = (index: number, checked: boolean) => {
-    setAccrueSelections((prev) => ({ ...prev, [index]: checked }));
   };
 
   const handleUpdateTransaction = (index: number, updatedExpense: Expense) => {
@@ -140,7 +133,6 @@ export const useExpenses = () => {
   return {
     data,
     pillSelections,
-    accrueSelections,
     sortOrder,
     sortColumn,
     editIndex,
@@ -149,7 +141,6 @@ export const useExpenses = () => {
     expenseName,
     addExpense: handleAddExpense,
     handlePillChange,
-    handleAccrueChange,
     handleUpdateTransaction,
     handleDeleteTransaction,
     handleEditChange,

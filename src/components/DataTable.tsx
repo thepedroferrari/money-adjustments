@@ -11,13 +11,11 @@ import { Expense } from "../types";
 const DataTable: React.FC = () => {
   const data = useStore((state) => state.data);
   const handlePillChange = useStore((state) => state.handlePillChange);
-  const handleAccrueChange = useStore((state) => state.handleAccrueChange);
   const deleteTransaction = useStore((state) => state.deleteTransaction);
   const sortData = useStore((state) => state.sortData);
   const sortOrder = useStore((state) => state.sortOrder);
   const sortColumn = useStore((state) => state.sortColumn);
   const pillSelections = useStore((state) => state.pillSelections);
-  const accrueSelections = useStore((state) => state.accrueSelections);
 
   const handleSort = (column: keyof Expense) => {
     sortData(column);
@@ -41,11 +39,6 @@ const DataTable: React.FC = () => {
       <table>
         <thead>
           <tr>
-            <th>
-              <div className="header-cell">
-                <span>Accrue</span>
-              </div>
-            </th>
             <th onClick={() => handleSort("owner")}>
               <div className="header-cell">
                 <span>Owner</span>
@@ -100,15 +93,6 @@ const DataTable: React.FC = () => {
             );
             return (
               <tr key={index}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={accrueSelections[index] !== false}
-                    onChange={(e) =>
-                      handleAccrueChange(index, e.target.checked)
-                    }
-                  />
-                </td>
                 <td>{item.owner}</td>
                 <td>{item.date}</td>
                 <td>{item.where}</td>
@@ -137,7 +121,7 @@ const DataTable: React.FC = () => {
           })}
         </tbody>
       </table>
-      <AddTransactionForm groupId="test-ferrari" expenseName="test" />
+      <AddTransactionForm />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { PEDRO_DEFAULT_QUOTA } from "../constants";
+import { Expense } from "../types";
 
 export const calculatePedroKarolin = (price: number, percentage: string) => {
   const percentValue = parseInt(percentage) / 100;
@@ -7,7 +8,7 @@ export const calculatePedroKarolin = (price: number, percentage: string) => {
   return { pedro, karolin };
 };
 
-export const shouldDisableRow = (item: { where: string; price: number }) => {
+export const shouldDisableRow = ({ where, price }: Partial<Expense>) => {
   const disableList = [
     "HUMBLEBUNDLE.C",
     "SL",
@@ -18,14 +19,15 @@ export const shouldDisableRow = (item: { where: string; price: number }) => {
   ];
 
   // Check for the presence of "Swedbank Pay" with -400 value (Haircut)
-  const isSwedbankPayWith400 =
-    item.where === "Swedbank Pay" && item.price === -400;
+  const isSwedbankPayWith400 = where === "Swedbank Pay" && price === -400;
 
   // Exclude entries that loosely contain the word "saving"
-  const containsSaving = /saving/i.test(item.where);
+  const containsSaving = where && /saving/i.test(where);
 
   return (
-    disableList.includes(item.where) || isSwedbankPayWith400 || containsSaving
+    (where && disableList.includes(where)) ||
+    isSwedbankPayWith400 ||
+    containsSaving
   );
 };
 

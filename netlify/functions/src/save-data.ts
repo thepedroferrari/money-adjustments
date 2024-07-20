@@ -29,7 +29,6 @@ type Expense = {
   owner: string;
   where: string;
   price: number;
-  accrue: boolean;
   quota: number;
 };
 

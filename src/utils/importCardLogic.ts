@@ -1,5 +1,6 @@
-import { Expense } from "../types";
-import { getQuotaByOwnerName, shouldDisableRow } from "./businessLogic";
+import { v4 as uuidv4 } from "uuid";
+import type { AmexPlatinumCard, Expense, HandelsbankenCard } from "../types";
+import { getQuotaByOwnerName } from "./businessLogic";
 
 export type ValidCards = HandelsbankenCard[] | AmexPlatinumCard[];
 
@@ -12,14 +13,6 @@ const getOwnerName = (str: string): string => {
   }
   return str;
 };
-
-export interface HandelsbankenCard {
-  Handelsbanken: string;
-  __EMPTY: string;
-  __EMPTY_1: string;
-  __EMPTY_2: number;
-  __EMPTY_3: number;
-}
 
 export function isHandelsbankenCard(
   card: HandelsbankenCard[] | AmexPlatinumCard[],
@@ -39,31 +32,16 @@ export const handleHandelsbankenCard = (
     const date = row["Handelsbanken"];
     const where = row["__EMPTY_1"];
     const price = row["__EMPTY_2"];
-    const accrue = shouldDisableRow({ where, price });
     return {
+      id: uuidv4(),
       date,
       owner: "Pedro",
       where,
       price,
-      accrue,
       quota: 66,
     };
   });
 };
-
-export interface AmexPlatinumCard {
-  Transaktionsspecifikationer: string;
-  __EMPTY: string;
-  __EMPTY_1: string;
-  __EMPTY_2: number | string | undefined;
-  __EMPTY_3: string;
-  __EMPTY_4: string;
-  __EMPTY_5: string;
-  __EMPTY_6: string;
-  __EMPTY_7: string;
-  __EMPTY_8: string;
-  __EMPTY_9: string;
-}
 
 export function isAmexPlatinumCard(
   card: HandelsbankenCard[] | AmexPlatinumCard[],
@@ -87,16 +65,15 @@ export const handleAmexPlatinumCard = (
     const date = row["Transaktionsspecifikationer"];
     const where = row["__EMPTY_4"];
     const price = row["__EMPTY_2"] * -1;
-    const accrue = shouldDisableRow({ where, price });
     const owner = getOwnerName(row["__EMPTY"]);
     const quota = getQuotaByOwnerName(owner);
 
     return {
+      id: uuidv4(),
       owner,
       date,
       where,
       price,
-      accrue,
       quota,
     };
   });
