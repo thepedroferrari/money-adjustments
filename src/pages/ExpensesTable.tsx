@@ -17,7 +17,6 @@ import { formatCurrency } from "../utils/formatCurrency";
 const ExpensesTable: React.FC = () => {
   const {
     data,
-    pillSelections,
     sortOrder,
     sortColumn,
     editIndex,
@@ -177,7 +176,7 @@ const ExpensesTable: React.FC = () => {
 
             const { pedro, karolin } = calculatePedroKarolin(
               item.price,
-              pillSelections[index] || "66%",
+              item.pillSelection || "66%",
             );
 
             return (
@@ -188,8 +187,8 @@ const ExpensesTable: React.FC = () => {
                 <td className="number">{formatCurrency(item.price)}</td>
                 <td>
                   <select
-                    value={pillSelections[index] || "66%"}
-                    onChange={(e) => handlePillChange(index, e.target.value)}
+                    value={item.pillSelection || "66%"}
+                    onChange={(e) => handlePillChange(item.id, e.target.value)}
                   >
                     {pillOptions.map((option) => (
                       <option key={option} value={option}>

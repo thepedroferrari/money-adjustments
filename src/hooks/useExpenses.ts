@@ -12,14 +12,11 @@ export const useExpenses = () => {
   const data = useStore((state) => state.data);
   const fetchExpenses = useStore((state) => state.fetchExpenses);
   const setData = useStore((state) => state.setData);
+  const handlePillChangeInStore = useStore((state) => state.handlePillChange);
+  const sortOrder = useStore((state) => state.sortOrder);
+  const sortColumn = useStore((state) => state.sortColumn);
+  const sortDataInStore = useStore((state) => state.sortData);
 
-  const [pillSelections, setPillSelections] = useState<{
-    [key: number]: string;
-  }>({});
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | "original">(
-    "original",
-  );
-  const [sortColumn, setSortColumn] = useState<keyof Expense>("date");
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Partial<Expense>>({});
   const [newExpense, setNewExpense] = useState<Partial<Expense>>({
@@ -45,8 +42,8 @@ export const useExpenses = () => {
     }
   }, [expenses, expenseName, groupId, setData]);
 
-  const handlePillChange = (index: number, value: string) => {
-    setPillSelections((prev) => ({ ...prev, [index]: value }));
+  const handlePillChange = (id: string, value: string) => {
+    handlePillChangeInStore(id, value);
   };
 
   const handleUpdateTransaction = (index: number, updatedExpense: Expense) => {
@@ -77,27 +74,7 @@ export const useExpenses = () => {
   };
 
   const sortData = (column: keyof Expense) => {
-    let sortedData;
-    if (sortOrder === "original" || sortColumn !== column) {
-      sortedData = [...data].sort((a, b) => {
-        if (a[column] === undefined) return 1;
-        if (b[column] === undefined) return -1;
-        return a[column] > b[column] ? 1 : -1;
-      });
-      setSortOrder("asc");
-    } else if (sortOrder === "asc") {
-      sortedData = [...data].sort((a, b) => {
-        if (a[column] === undefined) return 1;
-        if (b[column] === undefined) return -1;
-        return a[column] < b[column] ? 1 : -1;
-      });
-      setSortOrder("desc");
-    } else {
-      sortedData = data;
-      setSortOrder("original");
-    }
-    setSortColumn(column);
-    setData(sortedData);
+    sortDataInStore(column);
   };
 
   const handleEditChange = (
@@ -132,7 +109,6 @@ export const useExpenses = () => {
 
   return {
     data,
-    pillSelections,
     sortOrder,
     sortColumn,
     editIndex,
