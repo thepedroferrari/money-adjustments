@@ -55,28 +55,29 @@ export const createCalculationSlice: StateCreator<CalculationState> = (
     return { total, partialPedro, partialKarolin };
   },
   sortData: (column) => {
-    const { data, sortOrder, sortColumn } = get();
-    if (sortOrder === "original" || sortColumn !== column) {
-      const sortedData = [...data].sort((a, b) => {
-        if (a[column] === undefined) return 1;
-        if (b[column] === undefined) return -1;
-        return a[column] > b[column] ? 1 : -1;
-      });
-      set({ data: sortedData, sortOrder: "asc", sortColumn: column });
-    } else if (sortOrder === "asc") {
-      const sortedData = [...data].sort((a, b) => {
-        if (a[column] === undefined) return 1;
-        if (b[column] === undefined) return -1;
-        return a[column] < b[column] ? 1 : -1;
-      });
-      set({ data: sortedData, sortOrder: "desc" });
-    } else {
-      // Reset to original sort
-      set((state) => ({ data: state.data, sortOrder: "original" }));
-    }
+    set((state) => {
+      const { data, sortOrder, sortColumn } = state;
+      if (sortOrder === "original" || sortColumn !== column) {
+        const sortedData = [...data].sort((a, b) => {
+          if (a[column] === undefined) return 1;
+          if (b[column] === undefined) return -1;
+          return a[column] > b[column] ? 1 : -1;
+        });
+        return {
+          data: sortedData,
+          sortOrder: "asc" as const,
+          sortColumn: column,
+        };
+      } else if (sortOrder === "asc") {
+        const sortedData = [...data].sort((a, b) => {
+          if (a[column] === undefined) return 1;
+          if (b[column] === undefined) return -1;
+          return a[column] < b[column] ? 1 : -1;
+        });
+        return { data: sortedData, sortOrder: "desc" as const };
+      }
+      return { data: state.data, sortOrder: "original" as const };
+    });
   },
-
-  resetData: () => {
-    set((state) => ({ data: state.data }));
-  },
+  resetData: () => set((state) => ({ data: state.data })),
 });

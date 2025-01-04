@@ -32,8 +32,8 @@ export const createUserGroupSlice: StateCreator<UserGroupState> = (set) => ({
   user: null,
   groups: null,
   expenses: null,
-  setUser: (user, groups = null) => set({ user, groups }),
-  setExpenses: (expenses) => set({ expenses }),
+  setUser: (user, groups = null) => set(() => ({ user, groups })),
+  setExpenses: (expenses) => set(() => ({ expenses })),
   fetchExpenses: async (groupId) => {
     try {
       const expensesRef = collection(firebaseDb, `groups/${groupId}/expenses`);
@@ -49,7 +49,7 @@ export const createUserGroupSlice: StateCreator<UserGroupState> = (set) => ({
         });
       });
 
-      set({ expenses: { [groupId]: expensesData } });
+      set(() => ({ expenses: { [groupId]: expensesData } }));
     } catch (error) {
       console.error("Error fetching expenses", error);
     }

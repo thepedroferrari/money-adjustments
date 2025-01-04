@@ -1,4 +1,4 @@
-import { defer, LoaderFunctionArgs } from "react-router-dom";
+import { LoaderFunctionArgs } from "react-router-dom";
 import { syncData } from "../utils/firebaseFunctions";
 import { useStore } from "../hooks/useStore";
 
@@ -13,11 +13,9 @@ export const expensesLoader = async ({ params }: LoaderFunctionArgs) => {
 
   if (store.data.length === 0) {
     const result = await syncData(groupId, expenseName);
-
     store.setData(result.expenses);
-
-    return defer({ expenses: result.expenses });
+    return { expenses: result.expenses };
   }
 
-  return defer({});
+  return { expenses: store.data };
 };

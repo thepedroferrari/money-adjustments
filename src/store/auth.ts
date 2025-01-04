@@ -31,7 +31,7 @@ export interface AuthState {
 export const createAuthSlice: StateCreator<AuthState> = (set) => ({
   user: null,
   groups: null,
-  setUser: (user, groups = null) => set({ user, groups }),
+  setUser: (user, groups = null) => set(() => ({ user, groups })),
   signInWithEmail: async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -47,10 +47,10 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
       if (!isValidEmail(userEmail)) {
         throw new Error("Invalid email");
       }
-      set({
+      set(() => ({
         user: { uid: userCredential.user.uid, email: userEmail, groups },
         groups,
-      });
+      }));
     } catch (error) {
       console.error("Error signing in with email:", error);
     }
@@ -65,7 +65,10 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
       if (!isValidEmail(userEmail)) {
         throw new Error("Invalid email");
       }
-      set({ user: { uid: user.uid, email: userEmail, groups }, groups });
+      set(() => ({
+        user: { uid: user.uid, email: userEmail, groups },
+        groups,
+      }));
     } catch (error) {
       console.error("Error signing in with Google:", error);
     }
@@ -91,21 +94,21 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
       if (!isValidEmail(userEmail)) {
         throw new Error("Invalid email");
       }
-      set({
+      set(() => ({
         user: {
           uid: userCredential.user.uid,
           email: userEmail,
           groups: groupIds,
         },
         groups: groupIds,
-      });
+      }));
     } catch (error) {
       console.error("Error signing up with email:", error);
     }
   },
   logout: async () => {
     await signOut(auth);
-    set({ user: null, groups: null });
+    set(() => ({ user: null, groups: null }));
   },
 });
 

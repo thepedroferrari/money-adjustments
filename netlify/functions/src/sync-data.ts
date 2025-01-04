@@ -1,9 +1,8 @@
 // sync-data.ts
-import { Handler, HandlerEvent, HandlerResponse } from "@netlify/functions";
+import { Handler } from "@netlify/functions";
 import admin from "firebase-admin";
-import cors, { CorsRequest } from "cors";
+import cors from "cors";
 import dotenv from "dotenv";
-import { IncomingHttpHeaders } from "http";
 
 // Load environment variables
 dotenv.config();
@@ -11,83 +10,107 @@ dotenv.config();
 // Initialize CORS middleware
 const corsHandler = cors({ origin: true });
 
-// Initialize Firebase admin SDK
+// Initialize Firebase admin SDK with better error handling
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    }),
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
-  });
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      }),
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
+    });
+    console.log("Firebase Admin initialized successfully");
+  } catch (error) {
+    console.error("Error initializing Firebase Admin:", error);
+    throw error;
+  }
 }
+
 const firestoreDb = admin.firestore();
 
-type SyncDataRequest = {
-  groupId: string;
-  expenseName: string;
-};
+export const handler: Handler = async (event) => {
+  // Log the incoming request
+  console.log("Received request:", {
+    method: event.httpMethod,
+    body: event.body,
+    headers: event.headers,
+  });
 
-const syncDataHandler: Handler = async (
-  event: HandlerEvent,
-): Promise<HandlerResponse> => {
   return new Promise((resolve) => {
-    const mockRequest: CorsRequest = {
-      method: event.httpMethod,
-      headers: event.headers as IncomingHttpHeaders,
-    };
-
-    const headers: Record<string, string> = {};
-
-    const mockResponse = {
-      statusCode: 200,
-      setHeader: (key: string, value: string) => {
-        headers[key] = value;
-      },
-      getHeader: (key: string) => headers[key],
-      end: (message?: string) => {
-        resolve({
-          statusCode: 200,
-          body: message || "",
-        });
-      },
-    };
-
-    corsHandler(mockRequest, mockResponse, async () => {
-      const { groupId, expenseName } = JSON.parse(
-        event.body || "{}",
-      ) satisfies SyncDataRequest;
-      try {
-        console.log(
-          `Fetching data for group: ${groupId}, expense: ${expenseName}`,
-        );
-        const docRef = firestoreDb
-          .collection("groups")
-          .doc(groupId)
-          .collection("expenses")
-          .doc(expenseName);
-        const documentSnapshot = await docRef.get();
-        if (!documentSnapshot.exists) {
+    corsHandler(
+      { method: event.httpMethod, headers: event.headers },
+      {
+        statusCode: 200,
+        headers: {},
+        setHeader(key: string, value: string) {
+          this.headers[key] = value;
+        },
+        end(message: string) {
           resolve({
-            statusCode: 404,
-            body: JSON.stringify({ message: "No such document!" }),
+            statusCode: this.statusCode,
+            headers: this.headers,
+            body: message,
           });
-        } else {
-          resolve({
+        },
+      },
+      async () => {
+        try {
+          if (!event.body) {
+            throw new Error("Missing request body");
+          }
+
+          const { groupId, expenseName } = JSON.parse(event.body);
+
+          if (!groupId || !expenseName) {
+            throw new Error(
+              `Invalid parameters: groupId=${groupId}, expenseName=${expenseName}`,
+            );
+          }
+
+          console.log(
+            `Fetching data for group: ${groupId}, expense: ${expenseName}`,
+          );
+
+          const docRef = firestoreDb
+            .collection("groups")
+            .doc(groupId)
+            .collection("expenses")
+            .doc(expenseName);
+
+          const documentSnapshot = await docRef.get();
+
+          if (!documentSnapshot.exists) {
+            console.log("Document does not exist");
+            return resolve({
+              statusCode: 404,
+              body: JSON.stringify({
+                error: "No such document",
+                expenses: [],
+              }),
+            });
+          }
+
+          console.log("Document data:", documentSnapshot.data());
+
+          return resolve({
             statusCode: 200,
-            body: JSON.stringify(documentSnapshot.data()),
+            body: JSON.stringify({
+              expenses: documentSnapshot.data()?.expenses || [],
+            }),
+          });
+        } catch (error) {
+          console.error("Error in sync-data function:", error);
+          return resolve({
+            statusCode: 500,
+            body: JSON.stringify({
+              error: error instanceof Error ? error.message : "Unknown error",
+              stack: error instanceof Error ? error.stack : undefined,
+            }),
           });
         }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        resolve({
-          statusCode: 500,
-          body: JSON.stringify({ error: (error as Error).message }),
-        });
-      }
-    });
+      },
+    );
   });
 };
-
-export { syncDataHandler as handler };
