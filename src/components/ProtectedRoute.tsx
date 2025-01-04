@@ -1,20 +1,21 @@
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useStore } from "../hooks/useStore";
+import Loading from "./Loading";
 
-const ProtectedRoute: React.FC = () => {
-  const user = useStore((state) => state.user);
-  const groups = useStore((state) => state.groups);
+export default function ProtectedRoute() {
+  const { user, isAuthInitialized } = useStore();
+  const location = useLocation();
 
+  // Show loading state while auth is initializing
+  if (!isAuthInitialized) {
+    return <Loading />;
+  }
+
+  // Redirect to login if user is not authenticated
   if (!user) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!groups || groups.length === 0) {
-    return <Navigate to="/set-group" />;
-  }
-
+  // Render child routes if authenticated
   return <Outlet />;
-};
-
-export default ProtectedRoute;
+}

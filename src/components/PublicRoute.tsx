@@ -1,15 +1,22 @@
-import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useStore } from "../hooks/useStore";
+import Loading from "./Loading";
 
-const PublicRoute: React.FC = () => {
-  const user = useStore((state) => state.user);
+export default function PublicRoute() {
+  const { user, isAuthInitialized } = useStore();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
-  if (user) {
-    return <Navigate to="/" />;
+  // Show loading state while auth is initializing
+  if (!isAuthInitialized) {
+    return <Loading />;
   }
 
-  return <Outlet />;
-};
+  // Redirect to home or previous location if user is authenticated
+  if (user) {
+    return <Navigate to={from} replace />;
+  }
 
-export default PublicRoute;
+  // Render child routes if not authenticated
+  return <Outlet />;
+}

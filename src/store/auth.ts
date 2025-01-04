@@ -17,7 +17,9 @@ import { setGroup, saveUserProfile } from "../utils/firebaseFunctions";
 export interface AuthState {
   user: User | null;
   groups: string[] | null;
+  isAuthInitialized: boolean;
   setUser: (user: User | null, groups?: string[] | null) => void;
+  setAuthInitialized: (initialized: boolean) => void;
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
   signUpWithEmail: (
@@ -31,7 +33,10 @@ export interface AuthState {
 export const createAuthSlice: StateCreator<AuthState> = (set) => ({
   user: null,
   groups: null,
+  isAuthInitialized: false,
   setUser: (user, groups = null) => set(() => ({ user, groups })),
+  setAuthInitialized: (initialized) =>
+    set(() => ({ isAuthInitialized: initialized })),
   signInWithEmail: async (email, password) => {
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -114,18 +119,26 @@ export const createAuthSlice: StateCreator<AuthState> = (set) => ({
 
 // Listen for auth state changes
 onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    const userDoc = await getDoc(doc(firebaseDb, "users", user.uid));
-    const groups = userDoc.data()?.groups || [];
-    const userEmail = user.email;
-    if (!isValidEmail(userEmail)) {
-      console.error("Invalid email in auth state change");
-      return;
+  const { setUser, setAuthInitialized } = useStore.getState();
+
+  try {
+    if (user) {
+      const userDoc = await getDoc(doc(firebaseDb, "users", user.uid));
+      const groups = userDoc.data()?.groups || [];
+      const userEmail = user.email;
+      if (!isValidEmail(userEmail)) {
+        console.error("Invalid email in auth state change");
+        setUser(null, null);
+      } else {
+        setUser({ uid: user.uid, email: userEmail, groups }, groups);
+      }
+    } else {
+      setUser(null, null);
     }
-    useStore
-      .getState()
-      .setUser({ uid: user.uid, email: userEmail, groups }, groups);
-  } else {
-    useStore.getState().setUser(null, null);
+  } catch (error) {
+    console.error("Error in auth state change:", error);
+    setUser(null, null);
+  } finally {
+    setAuthInitialized(true);
   }
 });

@@ -1,18 +1,24 @@
 import React, { useState } from "react";
 import { useStore } from "../hooks/useStore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const signInWithEmail = useStore((state) => state.signInWithEmail);
-  const signInWithGoogle = useStore((state) => state.signInWithGoogle);
+  const { signInWithEmail, signInWithGoogle } = useStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     await signInWithEmail(email, password);
-    navigate("/");
+    navigate(from, { replace: true });
+  };
+
+  const handleGoogleLogin = async () => {
+    await signInWithGoogle();
+    navigate(from, { replace: true });
   };
 
   return (
@@ -33,7 +39,7 @@ const Login: React.FC = () => {
         />
         <button type="submit">Login with Email</button>
       </form>
-      <button onClick={signInWithGoogle}>Login with Google</button>
+      <button onClick={handleGoogleLogin}>Login with Google</button>
     </div>
   );
 };
